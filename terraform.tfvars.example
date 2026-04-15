@@ -2,18 +2,18 @@
 # terraform.tfvars — Example values (copy and customize)
 # =============================================================================
 
-subscription_id     = "7669d032-a274-4b10-8b8a-de2869f2596a"
-location            = "eastus"
-resource_group_name = "rg-vwan-prod"
-vwan_name           = "vwan-prod"
-vwan_type           = "Standard"
+#subscription_id     = "7669d032-a274-4b10-8b8a-de2869f2596a"
+#location            = "eastus"
+#resource_group_name = "rg-vwan-prod"
+#vwan_name           = "vwan-prod"
+#vwan_type           = "Standard"
 
-tags = {
-  environment = "production"
-  managed_by  = "terraform"
-  project     = "networking"
-  cost_center = "infra"
-}
+#tags = {
+ # environment = "production"
+  #managed_by  = "terraform"
+  #project     = "networking"
+  #cost_center = "infra"
+#}
 
 # ---------------------------------------------------------------------------
 # Override hub defaults (optional — defaults already defined in variables.tf)
