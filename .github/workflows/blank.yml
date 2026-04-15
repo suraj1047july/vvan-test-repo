@@ -1,0 +1,147 @@
+name: Terraform CI/CD
+
+on:
+ pull_request:
+  branches:
+   - main
+ push:
+  branches:
+   - main
+
+# env:
+#  CORTEX_API_KEY: ${{ secrets.CORTEX_API_KEY }}
+#  CORTEX_API_KEY_ID: ${{ secrets.CORTEX_API_KEY_ID }}
+#  CORTEX_API_URL: https://api-cortexcloudacpllab.xdr.in.paloaltonetworks.com
+
+jobs:
+
+ terraform-plan:
+  if: github.event_name == 'pull_request'
+  runs-on: ubuntu-latest
+
+  # env:
+  #   SCAN_PATH: "."
+  #   POLICY: "Default IaC policy"
+
+  steps:
+
+  - name: Checkout Code
+    uses: actions/checkout@v4
+
+  # -------- Node Setup for Cortex --------
+  - name: Set up Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: 22
+
+  - name: Verify Node.js Version
+    run: node -v
+
+
+  # -------- Cortex CLI Download --------
+  # - name: Download cortexcli
+  #   run: |
+  #     set -x
+  #     crtx_resp=$(curl "${CORTEX_API_URL}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=amd64" \
+  #       -H "x-xdr-auth-id: ${CORTEX_API_KEY_ID}" \
+  #       -H "Authorization: ${CORTEX_API_KEY}")
+  #     crtx_url=$(echo $crtx_resp | jq -r ".signed_url")
+  #     curl -o cortexcli $crtx_url
+  #     chmod +x cortexcli
+  #     ./cortexcli --version
+
+
+  # # -------- Cortex Code Scan --------
+  # - name: Run Cortex CLI Code Scan
+  #   run: |
+  #     ./cortexcli \
+  #       --api-base-url "${CORTEX_API_URL}" \
+  #       --api-key "${CORTEX_API_KEY}" \
+  #       --api-key-id "${CORTEX_API_KEY_ID}" \
+  #       code scan \
+  #       --directory "${{ github.workspace }}" \
+  #       --repo-id "${{ github.repository }}" \
+  #       --branch "${{ github.ref_name }}" \
+  #       --source "GITHUB_ACTIONS" \
+  #       --create-repo-if-missing
+
+
+  # # -------- Wiz CLI Download --------
+  # - name: Download Wiz CLI
+  #   run: |
+  #     curl -o wizcli https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64
+  #     chmod +x wizcli
+
+
+  # # -------- Wiz IaC Scan --------
+  # - name: Run Wiz IaC Scan
+  #   env:
+  #     WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+  #     WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
+  #   run: |
+  #     ./wizcli scan dir $SCAN_PATH --policies "$POLICY"
+
+
+  # -------- Terraform Setup --------
+  - name: Setup Terraform
+    uses: hashicorp/setup-terraform@v3
+    with:
+      terraform_version: 1.8.5
+
+
+  - name: Terraform Login
+    run: |
+      mkdir -p ~/.terraform.d
+      echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TF_API_TOKEN }}"}}}' > ~/.terraform.d/credentials.tfrc.json
+
+
+  - name: Terraform Init
+    run: terraform init
+
+
+  - name: Terraform Format Fix
+    run: terraform fmt -recursive
+
+
+  - name: Terraform Format Check
+    run: terraform fmt -check -recursive
+
+
+  - name: Terraform Validate
+    run: terraform validate
+
+
+  - name: Terraform Plan
+    run: terraform plan
+
+
+
+ terraform-apply:
+
+  if: github.event_name == 'push'
+  runs-on: ubuntu-latest
+
+  steps:
+
+  - name: Checkout Code
+    uses: actions/checkout@v4
+
+
+  - name: Setup Terraform
+    uses: hashicorp/setup-terraform@v3
+    with:
+      terraform_version: 1.8.5
+
+
+  - name: Terraform Login
+    run: |
+      mkdir -p ~/.terraform.d
+      echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TF_API_TOKEN }}"}}}' > ~/.terraform.d/credentials.tfrc.json
+
+
+  - name: Terraform Init
+    run: terraform init
+
+
+  - name: Terraform Apply
+    run: terraform apply -auto-approve
