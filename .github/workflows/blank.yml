@@ -1,147 +1,95 @@
 name: Terraform CI/CD
 
 on:
- pull_request:
-  branches:
-   - main
- push:
-  branches:
-   - main
-
-# env:
-#  CORTEX_API_KEY: ${{ secrets.CORTEX_API_KEY }}
-#  CORTEX_API_KEY_ID: ${{ secrets.CORTEX_API_KEY_ID }}
-#  CORTEX_API_URL: https://api-cortexcloudacpllab.xdr.in.paloaltonetworks.com
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
 
 jobs:
 
- terraform-plan:
-  if: github.event_name == 'pull_request'
-  runs-on: ubuntu-latest
+  terraform-plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
 
-  # env:
-  #   SCAN_PATH: "."
-  #   POLICY: "Default IaC policy"
+    # ✅ Azure Service Principal ENV (FIX)
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
-  steps:
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-  - name: Checkout Code
-    uses: actions/checkout@v4
+      # -------- Node Setup (optional - you had it) --------
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
-  # -------- Node Setup for Cortex --------
-  - name: Set up Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: 22
+      - name: Verify Node.js Version
+        run: node -v
 
-  - name: Verify Node.js Version
-    run: node -v
+      # -------- Terraform Setup --------
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
 
+      - name: Terraform Login (Terraform Cloud - optional)
+        run: |
+          mkdir -p ~/.terraform.d
+          echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TF_API_TOKEN }}"}}}' > ~/.terraform.d/credentials.tfrc.json
 
-  # -------- Cortex CLI Download --------
-  # - name: Download cortexcli
-  #   run: |
-  #     set -x
-  #     crtx_resp=$(curl "${CORTEX_API_URL}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=amd64" \
-  #       -H "x-xdr-auth-id: ${CORTEX_API_KEY_ID}" \
-  #       -H "Authorization: ${CORTEX_API_KEY}")
-  #     crtx_url=$(echo $crtx_resp | jq -r ".signed_url")
-  #     curl -o cortexcli $crtx_url
-  #     chmod +x cortexcli
-  #     ./cortexcli --version
+      - name: Terraform Init
+        run: terraform init
 
+      - name: Terraform Format Fix
+        run: terraform fmt -recursive
 
-  # # -------- Cortex Code Scan --------
-  # - name: Run Cortex CLI Code Scan
-  #   run: |
-  #     ./cortexcli \
-  #       --api-base-url "${CORTEX_API_URL}" \
-  #       --api-key "${CORTEX_API_KEY}" \
-  #       --api-key-id "${CORTEX_API_KEY_ID}" \
-  #       code scan \
-  #       --directory "${{ github.workspace }}" \
-  #       --repo-id "${{ github.repository }}" \
-  #       --branch "${{ github.ref_name }}" \
-  #       --source "GITHUB_ACTIONS" \
-  #       --create-repo-if-missing
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
 
+      - name: Terraform Validate
+        run: terraform validate
 
-  # # -------- Wiz CLI Download --------
-  # - name: Download Wiz CLI
-  #   run: |
-  #     curl -o wizcli https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64
-  #     chmod +x wizcli
+      # ✅ FIXED: Now Terraform can authenticate to Azure
+      - name: Terraform Plan
+        run: terraform plan
 
 
-  # # -------- Wiz IaC Scan --------
-  # - name: Run Wiz IaC Scan
-  #   env:
-  #     WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
-  #     WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
-  #   run: |
-  #     ./wizcli scan dir $SCAN_PATH --policies "$POLICY"
+  terraform-apply:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
 
+    # ✅ Azure Service Principal ENV (FIX)
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
-  # -------- Terraform Setup --------
-  - name: Setup Terraform
-    uses: hashicorp/setup-terraform@v3
-    with:
-      terraform_version: 1.8.5
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
 
-  - name: Terraform Login
-    run: |
-      mkdir -p ~/.terraform.d
-      echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TF_API_TOKEN }}"}}}' > ~/.terraform.d/credentials.tfrc.json
+      - name: Terraform Login (Terraform Cloud - optional)
+        run: |
+          mkdir -p ~/.terraform.d
+          echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TF_API_TOKEN }}"}}}' > ~/.terraform.d/credentials.tfrc.json
 
+      - name: Terraform Init
+        run: terraform init
 
-  - name: Terraform Init
-    run: terraform init
-
-
-  - name: Terraform Format Fix
-    run: terraform fmt -recursive
-
-
-  - name: Terraform Format Check
-    run: terraform fmt -check -recursive
-
-
-  - name: Terraform Validate
-    run: terraform validate
-
-
-  - name: Terraform Plan
-    run: terraform plan
-
-
-
- terraform-apply:
-
-  if: github.event_name == 'push'
-  runs-on: ubuntu-latest
-
-  steps:
-
-  - name: Checkout Code
-    uses: actions/checkout@v4
-
-
-  - name: Setup Terraform
-    uses: hashicorp/setup-terraform@v3
-    with:
-      terraform_version: 1.8.5
-
-
-  - name: Terraform Login
-    run: |
-      mkdir -p ~/.terraform.d
-      echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TF_API_TOKEN }}"}}}' > ~/.terraform.d/credentials.tfrc.json
-
-
-  - name: Terraform Init
-    run: terraform init
-
-
-  - name: Terraform Apply
-    run: terraform apply -auto-approve
+      # ✅ FIXED: Apply will now work with Azure auth
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
