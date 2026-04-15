@@ -14,19 +14,10 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
-    # ✅ Azure Service Principal ENV (FIX)
-    env:
-      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      ARM_USE_CLI: false
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # -------- Node Setup (optional - you had it) --------
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -35,7 +26,6 @@ jobs:
       - name: Verify Node.js Version
         run: node -v
 
-      # -------- Terraform Setup --------
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -58,22 +48,24 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      # ✅ FIXED: Now Terraform can authenticate to Azure
+      # ✅ DEBUG + AUTH FIX
       - name: Terraform Plan
-        run: terraform plan
+        run: |
+          echo "===== DEBUG ENV ====="
+          printenv | grep ARM || true
+          echo "====================="
+          terraform plan
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_USE_CLI: false
 
 
   terraform-apply:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-
-    # ✅ Azure Service Principal ENV (FIX)
-    env:
-      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      ARM_USE_CLI: false
 
     steps:
       - name: Checkout Code
@@ -92,6 +84,16 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      # ✅ FIXED: Apply will now work with Azure auth
+      # ✅ DEBUG + AUTH FIX
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: |
+          echo "===== DEBUG ENV ====="
+          printenv | grep ARM || true
+          echo "====================="
+          terraform apply -auto-approve
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_USE_CLI: false
