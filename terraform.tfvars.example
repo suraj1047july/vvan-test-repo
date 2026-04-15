@@ -1,0 +1,58 @@
+# =============================================================================
+# terraform.tfvars — Example values (copy and customize)
+# =============================================================================
+
+subscription_id     = "00000000-0000-0000-0000-000000000000"
+location            = "eastus"
+resource_group_name = "rg-vwan-prod"
+vwan_name           = "vwan-prod"
+vwan_type           = "Standard"
+
+tags = {
+  environment = "production"
+  managed_by  = "terraform"
+  project     = "networking"
+  cost_center = "infra"
+}
+
+# ---------------------------------------------------------------------------
+# Override hub defaults (optional — defaults already defined in variables.tf)
+# ---------------------------------------------------------------------------
+# virtual_hubs = {
+#   hub_eastus = {
+#     name                      = "vhub-eastus"
+#     location                  = "eastus"
+#     address_prefix            = "10.100.0.0/23"
+#     deploy_vpn_gateway        = true
+#     vpn_scale_unit            = 2
+#     vpn_bgp_asn               = 65515
+#     deploy_er_gateway         = false
+#     er_scale_unit             = 1
+#     deploy_p2s_gateway        = false
+#     p2s_scale_unit            = 1
+#     p2s_client_address_pool   = ["172.16.0.0/24"]
+#     deploy_firewall           = true
+#     create_custom_route_table = true
+#   }
+# }
+
+# ---------------------------------------------------------------------------
+# VPN Sites — uncomment and fill in real branch details
+# ---------------------------------------------------------------------------
+# vpn_sites = {
+#   branch_london = {
+#     name                = "vpnsite-london"
+#     hub_key             = "hub_westeurope"
+#     address_cidrs       = ["192.168.10.0/24"]
+#     link_ip_address     = "203.0.113.10"
+#     link_speed_mbps     = 100
+#     bgp_asn             = 65001
+#     bgp_peering_address = "169.254.21.1"
+#     shared_key          = "ReplaceWithSecureKey!"
+#   }
+# }
+
+# ---------------------------------------------------------------------------
+# P2S Root Certificate (Base64-encoded, no headers)
+# ---------------------------------------------------------------------------
+# p2s_root_certificate_public_data = "MIIDXzCCAkegAwI..."
