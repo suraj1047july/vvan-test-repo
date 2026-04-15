@@ -2,7 +2,7 @@
 # terraform.tfvars — Example values (copy and customize)
 # =============================================================================
 
-subscription_id     = "00000000-0000-0000-0000-000000000000"
+subscription_id     = "7669d032-a274-4b10-8b8a-de2869f2596a"
 location            = "eastus"
 resource_group_name = "rg-vwan-prod"
 vwan_name           = "vwan-prod"
