@@ -18,14 +18,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # ✅ Azure Login (Fix for your issue)
+      # ✅ FIXED LOGIN
       - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.ARM_CLIENT_ID }}
-          tenant-id: ${{ secrets.ARM_TENANT_ID }}
-          subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          client-secret: ${{ secrets.ARM_CLIENT_SECRET }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -34,12 +31,6 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-
-      - name: Terraform Format Fix
-        run: terraform fmt -recursive
-
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
 
       - name: Terraform Validate
         run: terraform validate
@@ -56,14 +47,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # ✅ Azure Login (Fix for your issue)
+      # ✅ FIXED LOGIN
       - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.ARM_CLIENT_ID }}
-          tenant-id: ${{ secrets.ARM_TENANT_ID }}
-          subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          client-secret: ${{ secrets.ARM_CLIENT_SECRET }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
