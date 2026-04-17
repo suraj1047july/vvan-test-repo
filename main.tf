@@ -18,6 +18,7 @@ cloud {
       name ="Disconnected-Env"
     }
 }
+}
 
 provider "azurerm" {
   features {}
