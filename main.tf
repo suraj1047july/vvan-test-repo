@@ -227,6 +227,10 @@ resource "azurerm_firewall" "hub_firewall" {
     virtual_hub_id  = azurerm_virtual_hub.hub[each.key].id
     public_ip_count = 1
   }
+depends_on = [
+    azurerm_virtual_hub.hub,
+    azurerm_firewall_policy.fw_policy
+  ]
 
   tags = var.tags
 }
