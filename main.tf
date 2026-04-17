@@ -12,6 +12,11 @@ terraform {
       version = "~> 3.100"
     }
   }
+cloud {
+    organization = "terraform_learn_all_cloud"
+    workspaces {
+      name ="Disconnected-Env"
+    }
 }
 
 provider "azurerm" {
