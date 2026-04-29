@@ -33,6 +33,14 @@ jobs:
   - name: Verify Node.js Version
     run: node -v
 
+  - name: Run Prisma Cloud 
+    id: prisma-cloud
+    uses: bridgecrewio/checkov-action@master
+    env:
+      PRISMA_API_URL: https://api.ind.prismacloud.io
+    with:
+      api-key: ${{ secrets.BC_API_KEY }}
+
 
   # -------- Terraform Setup --------
   - name: Setup Terraform
